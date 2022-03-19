@@ -1,0 +1,32 @@
+﻿<Properties StartupConfiguration="{2ABFB606-FC33-45A8-AABD-2CA58B90A7A8}|Default">
+  <MultiItemStartupConfigurations />
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Program.cs">
+    <Files>
+      <File FileName="obj/Debug/net6.0/Processor.GlobalUsings.g.cs" Line="4" Column="1" />
+      <File FileName="Program.cs" Line="17" Column="10" />
+      <File FileName="Processor.csproj" Line="18" Column="1" />
+      <File FileName="geometry3Sharp/core/DVector.cs" Line="380" Column="35" />
+      <File FileName="geometry3Sharp/mesh/Reducer.cs" Line="77" Column="1" />
+      <File FileName="geometry3Sharp/mesh/DMesh3.cs" Line="352" Column="20" />
+      <File FileName="geometry3Sharp/io/StandardMeshReader.cs" Line="220" Column="30" />
+    </Files>
+    <Pads>
+      <Pad Id="ProjectPad">
+        <State name="__root__">
+          <Node name="Processor" expanded="True">
+            <Node name="Processor" expanded="True" />
+          </Node>
+        </State>
+      </Pad>
+      <Pad Id="MonoDevelop.Debugger.WatchPad">
+        <State />
+      </Pad>
+    </Pads>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.ItemProperties.Processor PreferredExecutionTarget="MonoDevelop.Default" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+</Properties>

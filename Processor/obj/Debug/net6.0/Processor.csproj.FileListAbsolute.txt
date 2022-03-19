@@ -1,0 +1,13 @@
+/Users/shauntemellor/Library/Mobile Documents/com~apple~CloudDocs/Documents/comsci/Projects/GAN-Modeler/Processor/obj/Debug/net6.0/Processor.csproj.AssemblyReference.cache
+/Users/shauntemellor/Library/Mobile Documents/com~apple~CloudDocs/Documents/comsci/Projects/GAN-Modeler/Processor/obj/Debug/net6.0/Processor.GeneratedMSBuildEditorConfig.editorconfig
+/Users/shauntemellor/Library/Mobile Documents/com~apple~CloudDocs/Documents/comsci/Projects/GAN-Modeler/Processor/obj/Debug/net6.0/Processor.csproj.CoreCompileInputs.cache
+/Users/shauntemellor/Library/Mobile Documents/com~apple~CloudDocs/Documents/comsci/Projects/GAN-Modeler/Processor/bin/Debug/net6.0/Processor
+/Users/shauntemellor/Library/Mobile Documents/com~apple~CloudDocs/Documents/comsci/Projects/GAN-Modeler/Processor/bin/Debug/net6.0/Processor.deps.json
+/Users/shauntemellor/Library/Mobile Documents/com~apple~CloudDocs/Documents/comsci/Projects/GAN-Modeler/Processor/bin/Debug/net6.0/Processor.runtimeconfig.json
+/Users/shauntemellor/Library/Mobile Documents/com~apple~CloudDocs/Documents/comsci/Projects/GAN-Modeler/Processor/bin/Debug/net6.0/Processor.dll
+/Users/shauntemellor/Library/Mobile Documents/com~apple~CloudDocs/Documents/comsci/Projects/GAN-Modeler/Processor/bin/Debug/net6.0/Processor.pdb
+/Users/shauntemellor/Library/Mobile Documents/com~apple~CloudDocs/Documents/comsci/Projects/GAN-Modeler/Processor/obj/Debug/net6.0/Processor.dll
+/Users/shauntemellor/Library/Mobile Documents/com~apple~CloudDocs/Documents/comsci/Projects/GAN-Modeler/Processor/obj/Debug/net6.0/refint/Processor.dll
+/Users/shauntemellor/Library/Mobile Documents/com~apple~CloudDocs/Documents/comsci/Projects/GAN-Modeler/Processor/obj/Debug/net6.0/Processor.pdb
+/Users/shauntemellor/Library/Mobile Documents/com~apple~CloudDocs/Documents/comsci/Projects/GAN-Modeler/Processor/obj/Debug/net6.0/Processor.genruntimeconfig.cache
+/Users/shauntemellor/Library/Mobile Documents/com~apple~CloudDocs/Documents/comsci/Projects/GAN-Modeler/Processor/obj/Debug/net6.0/ref/Processor.dll
