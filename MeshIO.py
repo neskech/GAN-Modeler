@@ -1,45 +1,50 @@
-import tensorflow.python as tf
+import tensorflow as tf
 from typing import List
 import numpy as np
 
+#! REMEMBER TO DELETE THE TENSORS RETURNED BY THESE FUNCTIONS TO PREVENT MEMORY LEAKS
 
-def read(path: str, vertex_count: int) -> (np.ndarray[tuple[tf.float32, tf.float32, tf.float32]], List[int]):
+
+def read(path: str, face_count: int) -> tuple[np.ndarray, np.ndarray]:
     lines = open(path).readlines()
+    vertex_count = face_count * 3 - (face_count - 1) * 2
+    index_count = face_count * 3
     vertices = np.array(vertex_count, dtype=(tf.float32, tf.float32, tf.float32))
-    indices = []
+    indices = np.array(index_count, dtype=tf.int16)
 
     for line in lines:
         contents = line.split(" ")
         if contents[0] == 'v':
             cords = (float(contents[1]), float(contents[2]), float(contents[3]))
-            vertices.append(cords)
+            np.append(vertices, cords)
         else:
             ind = (int(contents[1]), int(contents[2]), int(contents[2]))
-            indices.append(ind)
+            np.append(indices, ind)
 
     return vertices, indices
 
 
-def write(path: str, vertices: np.ndarray[tf.float32, tf.float32, tf.float32], indices: List[int]):
+def write(path: str, vertices: np.ndarray, indices: np.ndarray):
     f = open(path)
     for vert in vertices:
         f.write(f'v {vert[0]} {vert[1]} {vert[2]} \n')
 
-    for a in range(0, len(indices) - 3, 3):
+    for a in range(0, indices.size - 3, 3):
         f.write(f'f {indices[a]} {indices[a + 1]} {indices[a + 2]} \n')
 
 
-def to_box(vertices: np.ndarray[(tf.float32, tf.float32, tf.float32)], indices: List[int], error: tf.float32, augment: bool = False,
+def to_box(vertices: np.ndarray, error: tf.float32, augment: bool = False, null_space: tf.float32 = -1.0,
            debug: bool = True):
     # Indices of index map correlate to vertex indices in the vertex array
-    box_index_map = []
+    box_index_map = np.array(vertices.size, dtype=tf.int16)
 
-    x_s = vertices.copy().sort(key=lambda v, v2: v[0] - v2[0])
-    y_s = vertices.copy().sort(key=lambda v, v2: v[1] - v2[1])
-    z_s = vertices.copy().sort(key=lambda v, v2: v[2] - v2[2])
+    #TODO Look up if this makes a copy or not
+    x_s = np.array(map(lambda x: x[0], vertices)).sort()
+    y_s = np.array(map(lambda x: x[1], vertices)).sort()
+    z_s = np.array(map(lambda x: x[2], vertices)).sort()
 
-    xDim, yDim, zDim = 0
-    xFail, yFail, zFail = False
+    xDim, yDim, zDim = 0, 0, 0
+    xFail, yFail, zFail = False, False, False
     failCount = 0
     for a in range(0, len(vertices) - 1):
         # X ERROR
@@ -58,21 +63,20 @@ def to_box(vertices: np.ndarray[(tf.float32, tf.float32, tf.float32)], indices: 
         if xFail or yFail or zFail:
             xDim = xDim + 1
             failCount = failCount + 1
-        xFail, yFail, zFail = False
+        xFail, yFail, zFail = False, False, False
 
-        box_index_map.append((xDim, yDim, zDim))
+        np.append(box_index_map, (xDim, yDim, zDim))
 
     box_space = tf.constant(shape=(xDim, yDim, zDim, 3), dytpe=tf.float32)
     if augment:
-       box_space.concat(tf.fill(shape=box_space.shape[:-1]), -1, dtype=tf.float32)
-
+        box_space.concat(tf.fill(shape=box_space.shape[:-1]), null_space, dtype=tf.float32)
 
     for b in range(0, len(box_index_map)):
         box_space[box_index_map[b] + (0,)] = vertices[b][0]
         box_space[box_index_map[b] + (1,)] = vertices[b][1]
         box_space[box_index_map[b] + (2,)] = vertices[b][2]
         if augment:
-            box_space[box_index_map[b] + (3,)] = vertices.find(vertices[b])
+            box_space[box_index_map[b] + (3,)] = b
 
     if debug:
         print(f'FAILS: {failCount} for an error of {error}')
@@ -83,7 +87,24 @@ def to_box(vertices: np.ndarray[(tf.float32, tf.float32, tf.float32)], indices: 
     return box_space
 
 
-def to_reg(box_space, vertex_count: int) -> np.ndarray[tf.float32, tf.float32, tf.float32]:
+def to_reg_with_aug(box_space, face_count: int) -> np.ndarray:
+    assert (box_space.shape[3] == 4)
+    vertex_count = face_count * 3 - (face_count - 1) * 2
+    vertices = np.empty(vertex_count, dtype=(tf.float32, tf.float32, tf.float32))
+
+    for i in range(box_space.shape[0] * box_space.shape[1] * box_space.shape[2]):
+        index = ((i % (box_space.shape[0] * box_space.shape[1])) // box_space.shape[0],
+                 i % box_space.shape[1], i // (box_space.shape[0] * box_space.shape[1]))
+
+        vert_index = box_space[index + (3,)]
+        if vert_index != -1:
+            vertices[vert_index] = (box_space[index + (0,)], box_space[index + (1,)], box_space[index + (2,)])
+
+    return vertices
+
+
+#Assumes the index of each element in the 3D matrix is convertible to 1D coordinates
+def to_reg_with_fake(box_space, vertex_count: int) -> np.ndarray:
     assert (box_space.shape[3] == 4)
     vertices = np.empty(vertex_count, dtype=(np.float32, np.float32, np.float32))
 
@@ -91,13 +112,12 @@ def to_reg(box_space, vertex_count: int) -> np.ndarray[tf.float32, tf.float32, t
         index = ((i % (box_space.shape[0] * box_space.shape[1])) // box_space.shape[0],
                  i % box_space.shape[1], i // (box_space.shape[0] * box_space.shape[1]))
 
-        if box_space[index] != -1:
-            vertices[index] = (box_space[index + (0,)], box_space[index + (1,)], box_space[index + (2,)])
+        vertices[i] = (box_space[index + (0,)], box_space[index + (1,)], box_space[index + (2,)])
 
     return vertices
 
-
-def adj_index_map_real(adj_map_slice, indices: List[int], null_space: tf.float32):
+#Using the augmented index map from the to_box func
+def adj_index_map_real(adj_map_slice, indices: np.ndarray, null_space: tf.float32 = -1.0):
     index_map = list_to_dict(indices)
     adj_index_map = tf.fill(adj_map_slice.shape, null_space, dtype=tf.float32)
 
@@ -120,13 +140,14 @@ def adj_index_map_real(adj_map_slice, indices: List[int], null_space: tf.float32
                             adj_map_slice[new_index] != null_space and
                             adj_map_slice[new_index] in index_map[adj_map_slice[index]]):
                         sum += .33 * direc[0] + .66 * direc[1] + 1.0 * direc[2]
-        sum /= 3
+        sum /= 3.0
         adj_index_map[index] = sum
 
     return adj_index_map
 
 
-def adj_index_map_fake(shape: tuple[int, int, int], indices: List[int], null_space: tf.float32):
+#Uses the 3D to 1D coordinate conversion rather than using an existing index map from the to_box func
+def adj_index_map_fake(shape: tuple[int, int, int], indices: np.ndarray, null_space: tf.float32 = -1.0):
     index_map = list_to_dict(indices)
     adj_index_map = tf.fill(shape, null_space, dtype=tf.float32)
 
@@ -148,7 +169,6 @@ def adj_index_map_fake(shape: tuple[int, int, int], indices: List[int], null_spa
                     if (0 <= new_index[0] < adj_index_map.shape[0] and
                             0 <= new_index[1] < adj_index_map.shape[1] and
                             0 <= new_index[2] < adj_index_map[2] and
-                            adj_index_map[new_index] != null_space and
                             oneD_index in index_map[i]):
                         sum += .33 * direc[0] + .66 * direc[1] + 1.0 * direc[2]
         sum /= 3
@@ -157,31 +177,33 @@ def adj_index_map_fake(shape: tuple[int, int, int], indices: List[int], null_spa
     return adj_index_map
 
 
-def list_to_dict(list: List[int]):
+def list_to_dict(list_items: np.ndarray) -> dict:
     hashMap = dict()
-    for a in range(0, len(list), 3):
+    for a in range(0, len(list_items), 3):
 
-        if not hashMap.__contains__(list[a]):
+        if not hashMap.__contains__(list_items[a]):
             #add it
-            hashMap[list[a]] = []
-        else:
-            if not list[a + 1] in hashMap[list[a]]: hashMap[list[a]].append(list[a + 1])
-            if not list[a + 1] in hashMap[list[a]]: hashMap[list[a]].append(list[a + 2])
+            hashMap[list_items[a]] = []
+
+        if not list_items[a + 1] in hashMap[list_items[a]]: hashMap[list_items[a]].append(list_items[a + 1])
+        if not list_items[a + 2] in hashMap[list_items[a]]: hashMap[list_items[a]].append(list_items[a + 2])
 
         if not hashMap.__contains__(list[a + 1]):
             # add it
-            hashMap[list[a + 1]] = []
-        else:
-            if not list[a] in hashMap[list[a + 1]]: hashMap[list[a + 1]].append(list[a])
-            if not list[a + 2] in hashMap[list[a + 1]]: hashMap[list[a + 1]].append(list[a + 2])
+            hashMap[list_items[a + 1]] = []
+
+        if not list_items[a] in hashMap[list_items[a + 1]]: hashMap[list_items[a + 1]].append(list_items[a])
+        if not list_items[a + 2] in hashMap[list_items[a + 1]]: hashMap[list_items[a + 1]].append(list_items[a + 2])
 
         if not hashMap.__contains__(list[a + 2]):
             # add it
-            hashMap[list[a + 2]] = []
-        else:
-            if not list[a] in hashMap[list[a + 2]]: hashMap[list[a + 2]].append(list[a])
-            if not list[a + 1] in hashMap[list[a + 2]]: hashMap[list[a + 2]].append(list[a + 1])
+            hashMap[list_items[a + 2]] = []
+
+        if not list_items[a] in hashMap[list_items[a + 2]]: hashMap[list_items[a + 2]].append(list_items[a])
+        if not list_items[a + 1] in hashMap[list_items[a + 2]]: hashMap[list_items[a + 2]].append(list_items[a + 1])
 
     return hashMap
+
+
 def normalize(verticies: List[(float, float, float)], indices: List[int]):
     pass

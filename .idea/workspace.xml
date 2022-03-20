@@ -2,13 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f65f3932-2ea8-4f31-9302-45f29ba5b963" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/Processing.cs" beforeDir="false" />
+      <change afterPath="$PROJECT_DIR$/Model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MeshIO.py" beforeDir="false" afterPath="$PROJECT_DIR$/MeshIO.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Processor/geometry3Sharp" beforeDir="false" afterPath="$PROJECT_DIR$/Processor/geometry3Sharp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Processor/geometry3Sharp/geometry3Sharp.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/Processor/geometry3Sharp/geometry3Sharp.csproj" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Processor/geometry3Sharp/io/StandardMeshReader.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Processor/geometry3Sharp/io/StandardMeshReader.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Processor/obj/Debug/net6.0/Processor.assets.cache" beforeDir="false" afterPath="$PROJECT_DIR$/Processor/obj/Debug/net6.0/Processor.assets.cache" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Processor/obj/Debug/net6.0/Processor.csproj.AssemblyReference.cache" beforeDir="false" afterPath="$PROJECT_DIR$/Processor/obj/Debug/net6.0/Processor.csproj.AssemblyReference.cache" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/shit.js" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -51,5 +50,16 @@
       <updated>1647670191177</updated>
     </task>
     <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
 </project>
