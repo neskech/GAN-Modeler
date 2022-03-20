@@ -6,7 +6,8 @@ from tensorflow.python.keras import layers
 BATCH_SIZE = 10
 EPOCHS = 2
 FACE_COUNT = 200
-NULL_SPACE = -1.0
+VERTEX_NULL_SPACE = -1.0
+INDEX_NULL_SPACE = -1.0
 ERROR = 0.5
 
 
