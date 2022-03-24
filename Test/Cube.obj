@@ -1,0 +1,33 @@
+
+#LEFT FACE FIRST
+v -1.0 -1.0 1.0
+v -1.0 0.0 1.0
+v -1.0 1.0 1.0
+
+#LEFT FACE SECOND
+v -1.0 -1.0 0.0
+v -1.0 0.0 0.0
+v -1.0 1.0 0.0
+
+#LEFT FACE THIRD
+v -1.0 -1.0 -1.0
+v -1.0 0.0 -1.0
+v -1.0 1.0 -1.0
+
+#MIDDLE
+v 0.0 0.0 0.0
+
+#RIGHT FACE FIRST
+v 1.0 -1.0 1.0
+v 1.0 0.0 1.0
+v 1.0 1.0 1.0
+
+#RIGHT FACE SECOND
+v 1.0 -1.0 .0
+v 1.0 0.0 0.0
+v 1.0 1.0 0.0
+
+#RIGHT FACE THIRD
+v 1.0 -1.0 -1.0
+v 1.0 0.0 -1.0
+v 1.0 1.0 -1.0

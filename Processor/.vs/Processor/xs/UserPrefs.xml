@@ -1,10 +1,14 @@
 ﻿<Properties StartupConfiguration="{2ABFB606-FC33-45A8-AABD-2CA58B90A7A8}|Default">
-  <MultiItemStartupConfigurations />
+  <MonoDevelop.Ide.ItemProperties.Processor PreferredExecutionTarget="MonoDevelop.Default" />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Program.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="geometry3Sharp/mesh/Reducer.cs">
     <Files>
       <File FileName="obj/Debug/net6.0/Processor.GlobalUsings.g.cs" Line="4" Column="1" />
-      <File FileName="Program.cs" Line="17" Column="10" />
+      <File FileName="Program.cs" Line="22" Column="14" />
       <File FileName="Processor.csproj" Line="18" Column="1" />
       <File FileName="geometry3Sharp/core/DVector.cs" Line="380" Column="35" />
       <File FileName="geometry3Sharp/mesh/Reducer.cs" Line="77" Column="1" />
@@ -15,7 +19,13 @@
       <Pad Id="ProjectPad">
         <State name="__root__">
           <Node name="Processor" expanded="True">
-            <Node name="Processor" expanded="True" />
+            <Node name="Processor" expanded="True">
+              <Node name="geometry3Sharp" expanded="True">
+                <Node name="core" expanded="True" />
+                <Node name="io" expanded="True" />
+                <Node name="mesh" expanded="True" />
+              </Node>
+            </Node>
           </Node>
         </State>
       </Pad>
@@ -24,9 +34,5 @@
       </Pad>
     </Pads>
   </MonoDevelop.Ide.Workbench>
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.ItemProperties.Processor PreferredExecutionTarget="MonoDevelop.Default" />
-  <MonoDevelop.Ide.DebuggingService.Breakpoints>
-    <BreakpointStore />
-  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MultiItemStartupConfigurations />
 </Properties>
