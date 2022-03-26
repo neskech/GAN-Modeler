@@ -1,5 +1,3 @@
-from re import L
-from pyrsistent import v
 import tensorflow as tf
 from typing import List
 import numpy as np
@@ -7,37 +5,52 @@ import numpy as np
 #! REMEMBER TO DELETE THE TENSORS RETURNED BY THESE FUNCTIONS TO PREVENT MEMORY LEAKS
 
 
-def read(path: str, vertex_count: int) -> tuple[np.ndarray, np.ndarray]:
+def read(path: str) -> tuple[np.ndarray, np.ndarray]:
     lines = open(path).readlines()
-    vertices = np.array([(0.0,0.0,0.0)] * vertex_count, dtype=np.float32)
-    indices = np.array([], dtype=np.int16)
+    vertices = []
+    indices = []
 
-    a = 0
     for line in lines:
         contents = line.split(' ')
         if contents[0] == 'v':
             cords = (float(contents[1]), float(contents[2]), float(contents[3]))
-            vertices[a] = cords
-            a += 1
-        else:
-            ind = (int(contents[1]), int(contents[2]), int(contents[2]))
-            indices = np.append(indices, ind[0])
-            indices = np.append(indices, ind[1])
-            indices = np.append(indices, ind[2])
+            vertices.append(cords)
+        elif contents[0] == 'f':
+            
+            #Process any '/'s
+            if contents[1].find('/') != -1:
+                for a in range(len(1, contents)):
+                    contents[a] = contents[a][:contents[a].find('/')]
+            
+            if len(contents) == 4:   
+                ind = (int(contents[1]) - 1, int(contents[2]) - 1, int(contents[3]) - 1)
+                indices.append(ind[0])
+                indices.append(ind[1])
+                indices.append(ind[2])
+            else:
+                ind = (int(contents[1]) - 1, int(contents[2]) - 1, int(contents[3]) - 1, int(contents[4]) - 1)
+                
+                indices.append(ind[0])
+                indices.append(ind[1])
+                indices.append(ind[3])
+                
+                indices.append(ind[1])
+                indices.append(ind[2])
+                indices.append(ind[3])
 
-    return vertices, indices
+    return np.array(vertices, dtype=np.float32), np.array(indices, dtype=np.int16)
 
 
-def write_obj(path: str, vertices: np.ndarray, indices: np.ndarray):
+def write(path: str, vertices: np.ndarray, indices: np.ndarray):
     f = open(path, 'w')
     for vert in vertices:
         f.write(f'v {vert[0]} {vert[1]} {vert[2]} \n')
 
-    for a in range(0, indices.size - 3, 3):
+    for a in range(0, indices.size - 2, 3):
         f.write(f'f {indices[a]} {indices[a + 1]} {indices[a + 2]} \n')
 
 
-def read_box(path: str, null_space: tf.float32) -> tuple(np.ndarray, np.ndarray):
+def read_box(path: str, null_space: tf.float32) -> tuple[np.ndarray, np.ndarray]:
     lines = open(path).readlines()
     
     vertex_space_shape = lines[0].split(' ')
