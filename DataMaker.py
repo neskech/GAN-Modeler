@@ -1,5 +1,5 @@
 import numpy as np
-from pyrsistent import v
+import tensorflow as tf
 
 def vertex_space(vertices: np.ndarray, desired_shape: tuple[int, int, int], index_augment: bool,
            vertex_null_space: np.float32, index_null_space: np.float32, debug: bool = False) -> np.ndarray:
@@ -120,7 +120,7 @@ def vertex_space(vertices: np.ndarray, desired_shape: tuple[int, int, int], inde
     return vertex_space
 
 
-def vertexSpace_to_array(vertex_space, vertex_null_space: np.float32) -> np.ndarray:
+def vertexSpaceAugment_to_array(vertex_space, vertex_null_space: np.float32) -> np.ndarray:
     """Converts a vertex space with an index augment back to a regular vertex array
 
     Args:
@@ -153,6 +153,41 @@ def vertexSpace_to_array(vertex_space, vertex_null_space: np.float32) -> np.ndar
     vertices.sort(key=lambda x: x[0])
     return np.array([vert[1] for vert in vertices])
 
+def vertexSpace_to_array(vertex_space, vertex_null_space: np.float32, isGenerated: bool) -> np.ndarray:
+    """Converts a vertex space with an index augment back to a regular vertex array
+       Order in the array is based on the 3D -> 1D index expansion of the vertex space
+
+    Args:
+        vertex_space (_type_): The vertex space
+        vertex_null_space (np.float32): The null space number for the vertex array
+
+    Returns:
+        np.ndarray: The vertex array
+    """
+    
+    #The vertex space must have an index augment for this function to perform properly
+    assert (vertex_space.shape[0] == 4)
+    vertices = []
+
+    for i in range(vertex_space.shape[1] * vertex_space.shape[2] * vertex_space.shape[3]):
+        index = (               #1D -> 3D index conversion
+                  i // (vertex_space.shape[1] * vertex_space.shape[2]),
+                  (i % (vertex_space.shape[1] * vertex_space.shape[2]) ) //vertex_space.shape[2],
+                  i % vertex_space.shape[2] ) 
+        
+        #If we find a null space, simply skip over it
+        if isGenerated:
+            #Generated vertex spaces from the neural network will not perfectly approximate null spaces. 
+            #Rather, it is easier for them to say that 'all null spaces are negative' and thus we check for a negative
+            if vertex_space[(0,) + index]  < 0:
+                continue
+        else:
+            if vertex_space[(0,) + index]  == vertex_null_space:
+                continue
+        #Associate the agument index with each vertex so we can refer back to the correct sorted order
+        vertices.append((vertex_space[(0,) + index], vertex_space[(1,) + index], vertex_space[(2,) + index]))
+
+    return np.array(vertices)
 
 def indexSpace_from_real(vertex_space: np.ndarray, indices: np.ndarray, index_null_space: np.float32) -> np.ndarray:
     """Constructs an index space from a 'real' 3D model
@@ -169,17 +204,18 @@ def indexSpace_from_real(vertex_space: np.ndarray, indices: np.ndarray, index_nu
     assert (vertex_space.shape[0] == 4)
     
     #A hashmap which maps indices to other indices which they are connected to
+    slice = vertex_space[3, :, :, :]
     index_map = list_to_dictionary(indices)
-    index_space = np.empty(shape=vertex_space.shape, dtype=np.float32)
+    index_space = np.empty(shape=slice.shape, dtype=np.float32)
     index_space.fill(index_null_space)
 
-    for i in range(vertex_space.size):
+    for i in range(slice.size):
         index = (
-                  i // (vertex_space.shape[1] * vertex_space.shape[2]),
-                  (i % (vertex_space.shape[1] * vertex_space.shape[2]) ) // vertex_space.shape[2],
-                  i % vertex_space.shape[2] ) 
+                  i // (slice.shape[1] * slice.shape[2]),
+                  (i % (slice.shape[1] * index_space.shape[2]) ) // index_space.shape[2],
+                  i % index_space.shape[2] ) 
     
-        if vertex_space[(3,) + index] == index_null_space:
+        if slice[index] == index_null_space:
             continue
         
         sum = 0.0
@@ -194,11 +230,11 @@ def indexSpace_from_real(vertex_space: np.ndarray, indices: np.ndarray, index_nu
                     new_index = (index[0] + direc[0], index[1] + direc[1], index[2] + direc[2])
 
                     #If the new index is in bounds and in the index hashmap and not a null space
-                    if (0 <= new_index[0] < vertex_space.shape[0] and
-                            0 <= new_index[1] < vertex_space.shape[1] and
-                            0 <= new_index[2] < vertex_space.shape[2] and
-                            vertex_space[new_index] != index_null_space and
-                            int(vertex_space[new_index]) in index_map[int(vertex_space[index])]):
+                    if (0 <= new_index[0] < slice.shape[0] and
+                            0 <= new_index[1] < slice.shape[1] and
+                            0 <= new_index[2] < slice.shape[2] and
+                            slice[new_index] != index_null_space and
+                            int(slice[new_index]) in index_map[int(slice[index])]):
                         sum += .33 * direc[0] + .66 * direc[1] - 1.0 * direc[2]
         sum /= 3.0
         index_space[index] = sum
@@ -206,7 +242,7 @@ def indexSpace_from_real(vertex_space: np.ndarray, indices: np.ndarray, index_nu
     return index_space
 
 
-def indexSpace_from_fake(vertex_space: np.ndarray, indices: np.ndarray, index_null_space: np.float32, vertex_null_space: np.float32) -> np.ndarray:
+def indexSpace_from_fake(vertex_space: np.ndarray, indices: np.ndarray, index_null_space: np.float32, vertex_null_space: np.float32, asTensor: bool) -> np.ndarray:
     """Creates an index space from a 3D model generated by the nerual network
 
     Args:
@@ -221,7 +257,7 @@ def indexSpace_from_fake(vertex_space: np.ndarray, indices: np.ndarray, index_nu
     #The index hashmap
     index_map = list_to_dictionary(indices)
     
-    index_space = np.empty(shape=vertex_space[:-1], dtype=np.float32)
+    index_space = np.empty(shape=vertex_space.shape[1:], dtype=np.float32)
     index_space.fill(index_null_space)
 
     vert_index = 0
@@ -233,11 +269,14 @@ def indexSpace_from_fake(vertex_space: np.ndarray, indices: np.ndarray, index_nu
                   (i % (index_space.shape[1] * index_space.shape[2]) ) // index_space.shape[2],
                   i % index_space.shape[2] )     
         
-        if vertex_space[(0,) + index] == vertex_null_space:
+        #The network will never make an exact copy of the null space. Rather, represent the null space as a negative number
+        if vertex_space[(0,) + index] < 0:
             null_indices.append(i)
             continue
         
         sum = 0.0
+        #Found boolean, just in case all spots around an index are not connected to it
+        found = False
         vals = (-1, 0, 1)
         
         #Iterate over all possible directions in 3D space from a point
@@ -259,13 +298,19 @@ def indexSpace_from_fake(vertex_space: np.ndarray, indices: np.ndarray, index_nu
                     #If the new index is in bounds and in the index hashmap and not a null space
                     if (0 <= new_index[0] < index_space.shape[0] and
                             0 <= new_index[1] < index_space.shape[1] and
-                            0 <= new_index[2] < index_space[2] and
+                            0 <= new_index[2] < index_space.shape[2] and
+                            not vertex_space[(0,) + new_index] < 0 and
+                            index_map.__contains__(vert_index) and
                             oneD_index in index_map[vert_index]):
+                        found = True
                         sum += .33 * direc[0] + .66 * direc[1] - 1.0 * direc[2]
-        sum /= 3
-        index_space[index] = sum
+                        
+        if found:
+            index_space[index] = sum / 3
         vert_index += 1
 
+    if asTensor:
+        return tf.convert_to_tensor(index_space)
     return index_space
 
 
@@ -347,4 +392,32 @@ def error_calcs(x_s: np.ndarray, y_s: np.ndarray,
     errZ /= z_s.size - 1
     return (errX, errY, errZ), (errorsX, errorsY, errorsZ)
 
+def normalize(space: np.ndarray, null_space: np.float32):
+    #Find the minimum and the maxiumum of the space
+    min = space[(0,) * len(space.shape)]
+    max = space[(0,) * len(space.shape)]
+    for el in np.nditer(space):
+        if el == null_space: continue
+        if el > max:
+            max = float(el)
+        if el < min:
+            min = float(el)
+            
+    #Then go through every element and normalize it
+    range = max - min
+    with np.nditer([space], op_flags=['readwrite']) as it:
+        for el in it:
+            if el == null_space: continue
+            el[...] = (el - min) / range
+        
+def proportions_to_indices(proportions, vertex_count: int, batch_size: int) -> np.ndarray:
+    data = [None] * batch_size
+    for a in range(batch_size):
+        unstacked = tf.unstack(tf.reshape(proportions[a], [-1]))
+        data[a] = []
+        for elem in unstacked:
+            data[a].append(elem.eval() * vertex_count)
+    return np.array(data)
+  
+    
 

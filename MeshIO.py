@@ -1,5 +1,6 @@
 import numpy as np
-
+import tensorflow as tf
+import os
 
 
 def read_wavefront(path: str) -> tuple[np.ndarray, np.ndarray]:
@@ -67,7 +68,7 @@ def write_wavefront(path: str, vertices: np.ndarray, indices: np.ndarray):
         f.write(f'f {indices[a]} {indices[a + 1]} {indices[a + 2]} \n')
 
 
-def read_space(path: str) -> tuple[np.ndarray, np.ndarray]:
+def read_space(path: str, asTensor: bool) -> tuple:
     """Reads a vertex and index space from a text (.txt) file
 
     Args:
@@ -100,12 +101,15 @@ def read_space(path: str) -> tuple[np.ndarray, np.ndarray]:
             vertex_space[(0,) + index] = vert[0]
             vertex_space[(1,) + index] = vert[1]
             vertex_space[(2,) + index] = vert[2]
-        else:
+        elif split[0] == 'f':
             index = (int(split[2]), int(split[3]), int(split[4]))
             el = float(split[1])
             index_space[index] = el
-           
-    return vertex_space, index_space 
+      
+    if asTensor:
+         return tf.convert_to_tensor(vertex_space), tf.convert_to_tensor(index_space)
+    else:     
+         return vertex_space, index_space 
         
 def write_space(path: str, vertex_space : np.ndarray, index_space : np.ndarray, vertex_null_space: np.float32, index_null_space: np.float32):
     """Writes a vertex and index space to a text (.txt) file
@@ -119,9 +123,9 @@ def write_space(path: str, vertex_space : np.ndarray, index_space : np.ndarray, 
     """
     f = open(path, 'w')
     
-    f.write(f'V_Space_Dimensions: {vertex_space.shape[0]} {vertex_space.shape[1]} {vertex_space.shape[2]} {vertex_space.shape[3]}\n')
-    f.write(f'Vert_Space_Null_Space: {vertex_null_space}\n')
-    f.write(f'I_Space_Dimensions: {index_space.shape[0]} {index_space.shape[1]} {index_space.shape[2]}\n')
+    f.write(f'Vertex_Space_Dimensions: {vertex_space.shape[0]} {vertex_space.shape[1]} {vertex_space.shape[2]} {vertex_space.shape[3]}\n')
+    f.write(f'Vertex_Space_Null_Space: {vertex_null_space}\n')
+    f.write(f'Index_Space_Dimensions: {index_space.shape[0]} {index_space.shape[1]} {index_space.shape[2]}\n')
     f.write(f'Index_Space_Null_Space: {index_null_space}\n\n')
     
 
@@ -139,7 +143,8 @@ def write_space(path: str, vertex_space : np.ndarray, index_space : np.ndarray, 
         
         vert = (vertex_space[(0,) + index], vertex_space[(1,) + index], vertex_space[(2,) + index])
         f.write(f'v {vert[0]} {vert[1]} {vert[2]} {index[0]} {index[1]} {index[2]}\n')
-       
+     
+    f.write('\n')  
     #Write the index space 
     for i in range(index_space.size):
         index = (       #1D -> 3D index conversion
@@ -153,3 +158,24 @@ def write_space(path: str, vertex_space : np.ndarray, index_space : np.ndarray, 
         f.write(f'f {index_space[index]} {index[0]} {index[1]} {index[2]}\n')
         
 
+def read_spaces_from_directory(directory: str, asTensor: bool, seperate: bool):
+    files = os.listdir(directory)
+    
+    if seperate:
+        vertex_spaces, index_spaces = [], []
+    else:
+         data = []
+         
+    for filename in files:
+        if seperate:
+            packed = read_space(f'{directory}/{filename}', asTensor=asTensor)
+            vertex_spaces.append(packed[0])
+            index_spaces.append(packed[1])
+        else:
+            data.append(read_space(f'{directory}/{filename}', asTensor=asTensor))
+      
+    if seperate:
+        return vertex_spaces, index_spaces      
+    return data
+        
+      
